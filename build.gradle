@@ -1,0 +1,72 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+group 'com.seokwon'
+version '1.0.1'
+
+sourceCompatibility = 17
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven"
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.seokwon.sample.PersonBoxAnalyze'
+    }
+    from {
+        configurations.compileClasspath.collect {it.isDirectory()? it: zipTree(it)}
+    }
+    // Execution failed for task ':jar'.
+    // > Entry META-INF/LICENSE is a duplicate but no duplicate handling strategy has been set. Please refer to https://docs.gradle.org/7.6.1/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy for details.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(Zip).configureEach {
+    zip64 = true
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.register('devPersonBox', JavaExec) {
+    main 'com.seokwon.sample.PersonBoxAnalyze'
+    classpath sourceSets.main.runtimeClasspath
+    args '--activeProfile=dev-accounting', '--runner=DataflowRunner', '--project=gcp-dev', '--jobName=prdPersonBox-dev', '--region=us-central1', '--daily=false'
+}
+tasks.register('prdPersonBox', JavaExec) {
+    main 'com.seokwon.sample.PersonBoxAnalyze'
+    classpath sourceSets.main.runtimeClasspath
+    args '--activeProfile=prd-accounting', '--runner=DataflowRunner', '--project=gcp-prd', '--jobName=prdPersonBox-prd', '--region=us-central1', '--usePublicIps=false', '--network=default', '--subnetwork=https://www.googleapis.com/compute/v1/projects/[project-name]/[regions-name]/[us-central1-zone-name]/subnetworks/default'
+}
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+    implementation('org.apache.commons:commons-lang3:3.12.0')
+    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+    implementation group: 'org.apache.beam', name: 'beam-runners-direct-java', version: '2.45.0'
+    implementation group: 'org.apache.beam', name: 'beam-sdks-java-core', version: '2.45.0'
+    implementation group: 'org.apache.beam', name: 'beam-sdks-java-io-jdbc', version: '2.45.0'
+    implementation 'org.apache.beam:beam-runners-google-cloud-dataflow-java:2.45.0'
+    implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.0.15'
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
+    implementation group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.4.1'
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '3.4.1'
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '2.0'
+    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    // https://mvnrepository.com/artifact/com.google.api-client/google-api-client
+    implementation 'com.google.api-client:google-api-client:2.2.0'
+}
