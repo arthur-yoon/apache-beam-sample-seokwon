@@ -1,3 +1,7 @@
+# Important: Demo!!
+It's currently a demo version, so I've been working on it in the past and ported it to the public version with the latest dependencies.
+When you have any questions, please open an issue or send email.
+
 # What to do?
 Service for running stream and batch data processing pipelines.
 
